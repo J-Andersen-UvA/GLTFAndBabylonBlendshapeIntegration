@@ -147,6 +147,12 @@ How does the final pipeline look summarized:
 We export the animations as FBX through Unreal Engine (this ensures that the blendshapes are present). We use COCOs FBX-glTF-conv tool to convert the FBX to gLTF. Then we fix all the errors by using the gLTFtransform tool. We import the textured mesh and animations separately into Babylon. We retarget/remap the animation onto the textured mesh.
 \end{center}
 
+\section{Troubleshoot}
+In my efforts to retarget the animation onto the mesh I came across some weird behaviour. In this section I will further discuss these.
+
+\subsection{No targets in clone}
+When using a mesh, and importing an animation, I came across an issue where I had no targets in the clone function (where I do the retargeting). Tracing this code, you might say that it is the animation importers fault for not adding the targets, but the animation not having any targets actually makes sense. The imported animation has a lot of animation keys and values, but no target because it is not driving any skeletalmesh. Therefore, you cannot use the clone function to do retargeting on different skeletalmeshes (or differently converted/imported skeletalmeshes).
+
 %-------------------------------------------------------------------------------
 %	REFERENTIES
 %-------------------------------------------------------------------------------
