@@ -117,7 +117,7 @@ UE FBX  & 4D Cinema         & No          & No       & The FBX import contains t
 \end{table}
 
 \subsection{COCOs and gLTFtransform to Babylon}
-Table \ref{tab:conversiontable} shows us that options COCOs FBX-glTF-conv\footnote{\url{https://github.com/cocos/FBX-glTF-conv}} and FBXX2gLTF are the only options to retain blendshapes. The latter however, forces us to figure out what the mapping of the index for the blendshape is with the \textit{renamed} blendshape. This seems like a foolhardy quest when the former offers us the blendshapes with correct names. The COCOs converter comes with its own hurdle. When importing a model that comes from COCOs into the Babylon sandbox, we see that there are many warnings and errors located by the gLTF validator. Ignoring these warnings and using the animations and meshes in Babylon, we suspect that these warnings slow down the load times in Babylon. Therefore we have to fix these warnings (or test further with suppressing warnings). The validator tells us precisely what is wrong with the gLTF file, but nobody feels like fixing 8000+ warnings by hand. Luckily, automated gLTF fixers exist. gLTF Transform\footnote{\url{https://gltf-transform.dev/}} offers such a service, getting rid of all the errors.
+Table \ref{tab:conversiontable} shows us that options COCOs FBX-glTF-conv\footnote{\url{https://github.com/cocos/FBX-glTF-conv}} and FBXX2gLTF are the only options to retain blendshapes. The latter however, forces us to figure out what the mapping of the index for the blendshape is with the \textit{renamed} blendshape (\textbf{Update:} this is not true because it is always renamed in the same manner, therefore I recommend using NPM fbx2gltf).  This seems like a foolhardy quest when the former offers us the blendshapes with correct names. The COCOs converter comes with its own hurdle. When importing a model that comes from COCOs into the Babylon sandbox, we see that there are many warnings and errors located by the gLTF validator. Ignoring these warnings and using the animations and meshes in Babylon, we suspect that these warnings slow down the load times in Babylon. Therefore we have to fix these warnings (or test further with suppressing warnings). The validator tells us precisely what is wrong with the gLTF file, but nobody feels like fixing 8000+ warnings by hand. Luckily, automated gLTF fixers exist. gLTF Transform\footnote{\url{https://gltf-transform.dev/}} offers such a service, getting rid of all the errors.
 
 \subsection{Textured mesh}
 When we export the FBX out of Unreal Engine, we are missing textures. Looking further into this, it becomes clear that it is standard to export the textures separately and later on reapply them to the mesh. In the Babylon Sandbox, we can import the textures after importing the model, and reapply them to the model. Then we export the model as GLB and we are able to use that file in our Babylon projects.
@@ -146,6 +146,7 @@ How does the final pipeline look summarized:
 \begin{center}
 We export the animations as FBX through Unreal Engine (this ensures that the blendshapes are present). We use COCOs FBX-glTF-conv tool to convert the FBX to gLTF. Then we fix all the errors by using the gLTFtransform tool. We import the textured mesh and animations separately into Babylon. We retarget/remap the animation onto the textured mesh.
 \end{center}
+(\textbf{Update:} because morphtargets are renamed in the same manner, I recommend using NPM fbx2gltf).
 
 \section{Troubleshoot}
 In my efforts to retarget the animation onto the mesh I came across some weird behaviour. In this section I will further discuss these.
@@ -153,6 +154,8 @@ In my efforts to retarget the animation onto the mesh I came across some weird b
 \subsection{No targets in clone}
 When using a mesh, and importing an animation, I came across an issue where I had no targets in the clone function (where I do the retargeting). Tracing this code, you might say that it is the animation importers fault for not adding the targets, but the animation not having any targets actually makes sense. The imported animation has a lot of animation keys and values, but no target because it is not driving any skeletalmesh. Therefore, you cannot use the clone function to do retargeting on different skeletalmeshes (or differently converted/imported skeletalmeshes).
 
+\subsection{More MorphTargetManagers on different mesh}
+Because there are different avatars we have used, all made in RPM, we found out that some have more MorphTargetManagers than others. This is due to some avatars having more meshes, and each morph is saved on each submesh in an avatar. What this meant for our BabylonJS implementation, is that we needed to copy some retargeted managers over to other empty ones when applying a retarget.
 %-------------------------------------------------------------------------------
 %	REFERENTIES
 %-------------------------------------------------------------------------------
